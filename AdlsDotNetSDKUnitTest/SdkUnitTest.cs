@@ -87,6 +87,7 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         private static bool _isFailureExpectedOnColon = false;
         private static string BasePath;
         private static string UnitTestDir;
+        private static bool symlinkTestsDisabled = true;
 
         public static string RandomString(int length)
         {
@@ -136,6 +137,12 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [ClassInitialize]
         public static void SetupTest(TestContext context)
         {
+            // Certain tests are expected to fail over symlink, so we skip them.
+            if (BasePath.ToLower().Contains("symlink"))
+            {
+                symlinkTestsDisabled = false;
+            }  
+
             _adlsClient = SetupSuperClient();
             
             _adlsClient.DeleteRecursive(UnitTestDir);
@@ -1082,6 +1089,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [DataRow(true)]
         public void TestRenameDirectoryDestinationExistsSubDirec(bool overwrite)
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestRenameDirectoryDestinationExistsSubDirec due to feature differences between Cosmos and Xstore.");
+            }
             string srcpath = $"{UnitTestDir}/testRenameSource1" + overwrite;
             string destPath = $"{UnitTestDir}/testRenameDestination1" + overwrite;
             string subDestpath = destPath + "/testRenameSource1" + overwrite;
@@ -1380,6 +1391,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestConcatOneFile()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestConcatOneFile because concat is not supported over symlink.");
+            }
             string destPath = $"{UnitTestDir}/destPathOneFile.txt";
             string srcFile1 = $"{UnitTestDir}/Source/srcPathOneFile.txt";
             string text1 = RandomString(2 * 1024);
@@ -1473,6 +1488,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestConcatTwoFile()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestConcatTwoFile because concat is not supported over symlink.");
+            }
             TestConcatTwoFile(false, UnitTestDir + "/destPath2.txt", UnitTestDir + "/Source");
             TestConcatTwoFile(true, UnitTestDir + "/destPath3.txt", UnitTestDir + "/Source1");
             TestConcatTwoFile(false, UnitTestDir + "/destPath6.txt", UnitTestDir + "/Source1", "prefix+with,signs");
@@ -1546,6 +1565,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestConcatThreeFile()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestConcatThreeFile because concat is not supported over symlink.");
+            }
             TestConcatThreeFile(false, UnitTestDir + "/destPath4.txt", UnitTestDir + "/Source2");
             TestConcatThreeFile(true, UnitTestDir + "/destPath5.txt", UnitTestDir + "/Source3");
         }
@@ -1630,6 +1653,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestConcatExisting()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestConcatExisting because concat is not supported over symlink.");
+            }
             string sourcePath = UnitTestDir + "/TestConcatExisting";
             List<string> srcList = new List<string>();
             string destPath = sourcePath + "/destPath.txt";
@@ -1833,6 +1860,11 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestSetPermissionFile()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestSetPermissionFile because AppendStream requires W in Gen1 but RW in Gen2.");
+            }
+            
             string path = $"{UnitTestDir}/SetPermission.txt";
             string originalPermission = "770";
             string permission = "772";
@@ -2466,6 +2498,11 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestAclDefaultMode()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestAclDefaultMode because AppendStream requires W in Gen1 but RW in Gen2.");
+            }
+
             string path = $"{UnitTestDir}/TestAclDefaultMode";
             _adlsClient.CreateDirectory(path, "730");
             List<AclEntry> aclList = new List<AclEntry>() {
@@ -2641,6 +2678,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestRestoreDeletedItemsToOriginalDestination()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestRestoreDeletedItemsToOriginalDestination over symlink.");
+            }
             // Restore file
             string streamName = GetFileOrFolderName("file");
             SetupTrashFile(streamName, "file");
@@ -2682,6 +2723,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestRestoreDeletedItemsToNewDestination()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestRestoreDeletedItemsToNewDestination over symlink.");
+            }
             // Restore file
             string streamName = GetFileOrFolderName("file");
             SetupTrashFile(streamName, "file");
@@ -2760,6 +2805,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestRestoreDeletedItemsFileWithOverwriteOrCopy()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestRestoreDeletedItemsFileWithOverwriteOrCopy over symlink.");
+            }
             // Test copy
             string streamName = GetFileOrFolderName("file");
             SetupTrashFile(streamName, "file");
@@ -2819,6 +2868,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestRestoreDeletedItemsDirectoryWithCopy()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestRestoreDeletedItemsDirectoryWithCopy over symlink.");
+            }
             // Test copy
             string dirName = GetFileOrFolderName("directory");
             SetupTrashFile(dirName, "directory");
@@ -2872,6 +2925,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestTrashEnumerateForMultipleFileSearch()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestTrashEnumerateForMultipleFileSearch over symlink.");
+            }
             string prefix = GetFileOrFolderName("file");
 
             int N = 10;
@@ -2931,6 +2988,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestTrashEnumerateForMultipleDirectorySearch()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestTrashEnumerateForMultipleDirectorySearch over symlink.");
+            }
             string prefix = GetFileOrFolderName("directory");
 
             int N = 10;
@@ -2955,6 +3016,10 @@ namespace Microsoft.Azure.DataLake.Store.UnitTest
         [TestMethod]
         public void TestTrashEnumerateWithToken()
         {
+            if (!symlinkTestsDisabled)
+            {
+                Assert.Inconclusive("Skipping TestTrashEnumerateWithToken over symlink.");
+            }
             string prefix = GetFileOrFolderName("file");
 
             int N = 10;
